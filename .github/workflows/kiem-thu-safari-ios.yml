@@ -1,0 +1,30 @@
+# Kiểm thử Safari thật trong iOS Simulator cho duoc365.com và thanhtat.com (chỉ đọc). Chạy tay: gh workflow run kiem-thu-safari-ios.yml
+name: Kiểm thử Safari iOS
+on: workflow_dispatch
+jobs:
+  safari-ios:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - name: Bật safaridriver
+        run: sudo safaridriver --enable
+      - name: Chạy trên iPhone nhỏ, iPhone lớn, iPad
+        run: |
+          xcrun simctl list devices available
+          pick() { xcrun simctl list devices available | grep -E "$1" | head -1 | sed -E 's/^ *(.*) \([0-9A-F-]{36}\).*/\1/'; }
+          status=0
+          for pattern in 'iPhone SE|iPhone 16e|iPhone 1[0-9] \(' 'Pro Max' 'iPad \(|iPad Air|iPad mini'; do
+            name="$(pick "$pattern")"; [ -n "$name" ] || { echo "Không có simulator khớp $pattern"; continue; }
+            udid="$(xcrun simctl list devices available | grep -F "$name (" | head -1 | grep -oE '[0-9A-F-]{36}')"
+            xcrun simctl boot "$udid" || true; xcrun simctl bootstatus "$udid" -b
+            node scripts/kiem-thu-safari-ios.mjs "$name" || status=1
+            xcrun simctl shutdown "$udid" || true
+          done
+          exit $status
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: safari-ios, path: .scratch/safari-ios, retention-days: 7 }
