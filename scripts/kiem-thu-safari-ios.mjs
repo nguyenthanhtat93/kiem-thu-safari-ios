@@ -1,10 +1,11 @@
 /** Kiểm thử Safari thật trong iOS Simulator (máy macOS, safaridriver). Chỉ đọc website thật.
- * node scripts/kiem-thu-safari-ios.mjs <tên simulator> — kết quả .scratch/safari-ios/<máy>/ (ảnh + report.json).
+ * node scripts/kiem-thu-safari-ios.mjs <tên simulator> [udid] — kết quả .scratch/safari-ios/<máy>/ (ảnh + report.json).
  */
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 const device = process.argv[2];
+const udid = process.argv[3];
 if (!device) throw new Error('Thiếu tên simulator');
 const out = `.scratch/safari-ios/${device.replace(/[^\w]+/g, '-')}`;
 mkdirSync(out, { recursive: true });
@@ -33,9 +34,9 @@ async function wd(method, path, body) {
 const results = [];
 let session;
 try {
-  for (let i = 0; i < 40; i++) { try { await fetch(base + '/status'); break; } catch { await sleep(500); } }
+  for (let i = 0; i < 240; i++) { try { await fetch(base + '/status'); break; } catch { await sleep(500); } }
   session = (await wd('POST', '/session', { capabilities: { alwaysMatch: {
-    browserName: 'Safari', platformName: 'iOS', 'safari:useSimulator': true, 'safari:deviceName': device,
+    browserName: 'Safari', platformName: 'iOS', 'safari:useSimulator': true, 'safari:deviceName': device, ...(udid ? { 'safari:deviceUDID': udid } : {}),
   } } })).sessionId;
   console.log('Phiên Safari iOS:', device);
   for (const [site, url] of pages) {

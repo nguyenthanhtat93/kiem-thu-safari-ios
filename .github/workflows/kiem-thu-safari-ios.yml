@@ -20,8 +20,14 @@ jobs:
           for pattern in 'iPhone SE|iPhone 16e|iPhone 1[0-9] \(' 'Pro Max' 'iPad \(|iPad Air|iPad mini'; do
             name="$(pick "$pattern")"; [ -n "$name" ] || { echo "Không có simulator khớp $pattern"; continue; }
             udid="$(xcrun simctl list devices available | grep -F "$name (" | head -1 | grep -oE '[0-9A-F-]{36}')"
-            xcrun simctl boot "$udid" || true; xcrun simctl bootstatus "$udid" -b
-            node scripts/kiem-thu-safari-ios.mjs "$name" || status=1
+            xcrun simctl boot "$udid" || true; xcrun simctl bootstatus "$udid" -b || true
+            # Bật Cài đặt → Safari → Nâng cao → Remote Automation / Web Inspector để safaridriver nối được.
+            for key in RemoteAutomationEnabled WebKitRemoteAutomationEnabled WebKitInspectorEnabled WebInspectorEnabled WebKitDeveloperExtrasEnabledPreferenceKey; do
+              xcrun simctl spawn "$udid" defaults write com.apple.mobilesafari "$key" -bool YES
+              xcrun simctl spawn "$udid" defaults write com.apple.WebInspector "$key" -bool YES
+            done
+            xcrun simctl terminate "$udid" com.apple.mobilesafari || true
+            node scripts/kiem-thu-safari-ios.mjs "$name" "$udid" || status=1
             xcrun simctl shutdown "$udid" || true
           done
           exit $status
