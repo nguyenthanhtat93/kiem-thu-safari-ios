@@ -1,7 +1,7 @@
 /** Kiểm thử Safari thật trong iOS Simulator (máy macOS, safaridriver). Chỉ đọc website thật.
  * node scripts/kiem-thu-safari-ios.mjs <tên simulator> [udid] — kết quả .scratch/safari-ios/<máy>/ (ảnh + report.json).
  */
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 const device = process.argv[2];
@@ -51,15 +51,30 @@ try {
           .filter(e => e.getClientRects().length && parseFloat(getComputedStyle(e).fontSize) < 16).map(e => e.name || e.id || e.placeholder || e.type);
         const wide = [...document.querySelectorAll('body *')].filter(e => { const r = e.getBoundingClientRect(); return r.width && r.right > innerWidth + 1 && getComputedStyle(e).position !== 'fixed'; })
           .slice(0, 5).map(e => e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.split(' ')[0] : ''));
-        return { title: document.title, heading: h && h.textContent.trim().slice(0, 80), width: innerWidth, scroll: document.documentElement.scrollWidth,
+        // Icon / nút nằm đè lên vùng chữ của ô nhập (lề trong không chừa chỗ cho nút).
+        const overlap = [];
+        for (const e of document.querySelectorAll('input:not([type=hidden]):not([type=checkbox]):not([type=radio])')) {
+          const r = e.getBoundingClientRect(); if (!r.width || r.bottom < 0 || r.top > innerHeight) continue;
+          const cs = getComputedStyle(e), left = r.left + parseFloat(cs.paddingLeft) + parseFloat(cs.borderLeftWidth), right = r.right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth);
+          for (const b of e.parentElement ? e.parentElement.querySelectorAll('button, svg') : []) {
+            if (e.contains(b)) continue;
+            const q = b.getBoundingClientRect(); if (!q.width || getComputedStyle(b).visibility === 'hidden') continue;
+            if (q.left < right - 1 && q.right > left + 1 && q.top < r.bottom && q.bottom > r.top)
+              overlap.push((e.name || e.placeholder || e.type) + ' ← ' + (b.getAttribute('aria-label') || b.className.baseVal || b.className) + ' (lề phải ' + cs.paddingRight + ', lớp ' + e.className + ')');
+          }
+        }
+        return { overlap, title: document.title, heading: h && h.textContent.trim().slice(0, 80), width: innerWidth, scroll: document.documentElement.scrollWidth,
           ua: navigator.userAgent, safeTop: getComputedStyle(document.documentElement).getPropertyValue('--top-safe'), smallInputs: small, wide,
           viewport: document.querySelector('meta[name=viewport]')?.content, input: input && getComputedStyle(input).fontSize };` });
       const shot = await wd('GET', `/session/${session}/screenshot`);
       writeFileSync(`${out}/${name}.png`, Buffer.from(shot, 'base64'));
+      // Ảnh cả màn hình Simulator (có thanh địa chỉ Safari, thanh trạng thái) để thấy phần nào bị che.
+      if (udid) try { execFileSync('xcrun', ['simctl', 'io', udid, 'screenshot', `${out}/${name}-man-hinh.png`], { stdio: 'ignore' }); } catch {}
       const problems = [];
       if (m.scroll > m.width + 1) problems.push(`tràn ngang ${m.scroll} > ${m.width}: ${m.wide.join(', ')}`);
       if (m.smallInputs.length) problems.push(`ô nhập < 16px (Safari tự phóng to): ${m.smallInputs.join(', ')}`);
       if (!m.heading) problems.push('không thấy tiêu đề trang');
+      if (m.overlap.length) problems.push(`icon đè lên chữ ô nhập: ${m.overlap.join('; ')}`);
       results.push({ device, url, ok: !problems.length, problems, ...m });
       console.log(problems.length ? 'LỖI' : 'ĐẠT', device, url, problems.join('; '));
     } catch (e) {
