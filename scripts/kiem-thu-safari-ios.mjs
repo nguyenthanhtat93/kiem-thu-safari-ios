@@ -51,15 +51,15 @@ try {
           .filter(e => e.getClientRects().length && parseFloat(getComputedStyle(e).fontSize) < 16).map(e => e.name || e.id || e.placeholder || e.type);
         const wide = [...document.querySelectorAll('body *')].filter(e => { const r = e.getBoundingClientRect(); return r.width && r.right > innerWidth + 1 && getComputedStyle(e).position !== 'fixed'; })
           .slice(0, 5).map(e => e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.split(' ')[0] : ''));
-        // Icon / nút nằm đè lên vùng chữ của ô nhập (lề trong không chừa chỗ cho nút).
+        // Icon nằm đè lên vùng chữ của ô nhập (lề trong không chừa chỗ cho nút). Chỉ xét hình icon (svg), không xét vùng bấm của nút — vùng bấm 44px được phép rộng hơn lề.
         const overlap = [];
         for (const e of document.querySelectorAll('input:not([type=hidden]):not([type=checkbox]):not([type=radio])')) {
           const r = e.getBoundingClientRect(); if (!r.width || r.bottom < 0 || r.top > innerHeight) continue;
           const cs = getComputedStyle(e), left = r.left + parseFloat(cs.paddingLeft) + parseFloat(cs.borderLeftWidth), right = r.right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth);
-          for (const b of e.parentElement ? e.parentElement.querySelectorAll('button, svg') : []) {
+          for (const b of e.parentElement ? e.parentElement.querySelectorAll('svg') : []) {
             if (e.contains(b)) continue;
             const q = b.getBoundingClientRect(); if (!q.width || getComputedStyle(b).visibility === 'hidden') continue;
-            if (q.left < right - 1 && q.right > left + 1 && q.top < r.bottom && q.bottom > r.top)
+            if (q.left < right - 2 && q.right > left + 2 && q.top < r.bottom && q.bottom > r.top)
               overlap.push((e.name || e.placeholder || e.type) + ' ← ' + (b.getAttribute('aria-label') || b.className.baseVal || b.className) + ' (lề phải ' + cs.paddingRight + ', lớp ' + e.className + ')');
           }
         }
