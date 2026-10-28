@@ -70,7 +70,11 @@ try {
               overlap.push((e.name || e.placeholder || e.type) + ' ← ' + (b.getAttribute('aria-label') || b.className.baseVal || b.className) + ' (lề phải ' + cs.paddingRight + ', lớp ' + e.className + ')');
           }
         }
-        return { overlap, title: document.title, heading: h && h.textContent.trim().slice(0, 80), width: innerWidth, scroll: document.documentElement.scrollWidth,
+        // Mốc thời gian: chờ HTML (responseStart) và các yêu cầu chậm nhất — biết trang chậm vì mạng, máy chủ hay một API.
+        const nav = performance.getEntriesByType('navigation')[0];
+        const timing = nav && { html: Math.round(nav.responseStart), dom: Math.round(nav.domInteractive), slow: performance.getEntriesByType('resource')
+          .sort((a, b) => b.duration - a.duration).slice(0, 4).map(e => Math.round(e.duration) + 'ms@' + Math.round(e.startTime) + ' ' + e.name.replace(location.origin, '').slice(0, 60)) };
+        return { overlap, timing, title: document.title, heading: h && h.textContent.trim().slice(0, 80), width: innerWidth, scroll: document.documentElement.scrollWidth,
           ua: navigator.userAgent, safeTop: getComputedStyle(document.documentElement).getPropertyValue('--top-safe'), smallInputs: small, wide,
           viewport: document.querySelector('meta[name=viewport]')?.content, input: input && getComputedStyle(input).fontSize };` });
       const shot = await wd('GET', `/session/${session}/screenshot`);
@@ -84,6 +88,7 @@ try {
       if (m.overlap.length) problems.push(`icon đè lên chữ ô nhập: ${m.overlap.join('; ')}`);
       results.push({ device, url, ok: !problems.length, problems, loadMs, ...m });
       console.log(problems.length ? 'LỖI' : 'ĐẠT', device, url, loadMs === null ? '' : `${(loadMs / 1000).toFixed(1)} giây`, problems.join('; '));
+      if (loadMs === null || loadMs > 5000) console.log('   chậm:', JSON.stringify(m.timing));
     } catch (e) {
       results.push({ device, url, ok: false, problems: [String(e.message || e)] });
       console.log('LỖI', device, url, String(e.message || e).slice(0, 300));
