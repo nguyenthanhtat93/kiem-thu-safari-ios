@@ -42,8 +42,15 @@ try {
   for (const [site, url] of pages) {
     const name = `${site}-${new URL(url).pathname.replace(/\//g, '') || 'trang-chu'}`;
     try {
+      const start = Date.now();
       await wd('POST', `/session/${session}/url`, { url });
-      await sleep(4000);
+      // Chờ trang dựng xong (có tiêu đề, hết màn chờ) tối đa 20 giây; mạng máy GitHub (Mỹ) → máy chủ Việt Nam có lúc chậm.
+      let loadMs = null;
+      while (Date.now() - start < 20000) {
+        if (await wd('POST', `/session/${session}/execute/sync`, { args: [], script: "return !!document.querySelector('h1,h2') && !document.querySelector('.boot-screen')" })) { loadMs = Date.now() - start; break; }
+        await sleep(500);
+      }
+      await sleep(1500);
       const m = await wd('POST', `/session/${session}/execute/sync`, { args: [], script: `
         const input = document.querySelector('input:not([type=hidden]):not([type=checkbox]):not([type=radio])');
         const h = document.querySelector('h1,h2');
@@ -73,10 +80,10 @@ try {
       const problems = [];
       if (m.scroll > m.width + 1) problems.push(`tràn ngang ${m.scroll} > ${m.width}: ${m.wide.join(', ')}`);
       if (m.smallInputs.length) problems.push(`ô nhập < 16px (Safari tự phóng to): ${m.smallInputs.join(', ')}`);
-      if (!m.heading) problems.push('không thấy tiêu đề trang');
+      if (!m.heading || loadMs === null) problems.push('trang chưa dựng xong sau 20 giây');
       if (m.overlap.length) problems.push(`icon đè lên chữ ô nhập: ${m.overlap.join('; ')}`);
-      results.push({ device, url, ok: !problems.length, problems, ...m });
-      console.log(problems.length ? 'LỖI' : 'ĐẠT', device, url, problems.join('; '));
+      results.push({ device, url, ok: !problems.length, problems, loadMs, ...m });
+      console.log(problems.length ? 'LỖI' : 'ĐẠT', device, url, loadMs === null ? '' : `${(loadMs / 1000).toFixed(1)} giây`, problems.join('; '));
     } catch (e) {
       results.push({ device, url, ok: false, problems: [String(e.message || e)] });
       console.log('LỖI', device, url, String(e.message || e).slice(0, 300));
