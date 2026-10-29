@@ -9,21 +9,21 @@ tags: [khach]
 - takeScreenshot: 02-trang-chu
 # Cuộn như người dùng tới dải đối tác cuối trang.
 - scrollUntilVisible:
-    element: "Thuốc tân dược"
+    element: ".*Thuốc tân dược.*"
     direction: DOWN
     timeout: 20000
 - takeScreenshot: 02-nhom-hang
 - scrollUntilVisible:
-    element: "Đối tác của chúng tôi"
+    element: ".*Đối tác của chúng tôi.*"
     direction: DOWN
     timeout: 30000
 - takeScreenshot: 02-doi-tac
 # Nhóm hàng của khách mở màn đăng nhập (giá chỉ cho khách có tài khoản).
 - scrollUntilVisible:
-    element: "Thuốc tân dược"
+    element: ".*Thuốc tân dược.*"
     direction: UP
     timeout: 30000
-- tapOn: "Thuốc tân dược"
+- tapOn: ".*Thuốc tân dược.*"
 - extendedWaitUntil:
     visible: "Quên mật khẩu\\?"
     timeout: 20000
