@@ -86,6 +86,7 @@
 	<array>
 		<string>duoc365.com</string>
 		<string>duocphamlinhphuong.com</string>
+		<string>cloudflare.com</string>
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Dùng Face ID để đăng nhập nhanh và xác nhận đặt hàng, huỷ đơn, nhận hàng thay cho mật khẩu. Khuôn mặt chỉ được iPhone kiểm tra, không gửi đi đâu.</string>

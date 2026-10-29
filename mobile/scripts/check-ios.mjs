@@ -43,8 +43,9 @@ for (const key of ["NSLocationWhenInUseUsageDescription", "NSLocationAlwaysAndWh
 }
 check("Khai không mã hoá riêng (ITSAppUsesNonExemptEncryption = NO, miễn hồ sơ xuất khẩu)", /ITSAppUsesNonExemptEncryption<\/key>\s*<false\/>/.test(plist));
 check("Nhận thông báo nền (remote-notification)", plist.includes("remote-notification"));
-check("WKAppBoundDomains có duoc365.com và duocphamlinhphuong.com (QC nativeShell.appBoundDomains)",
-  /WKAppBoundDomains<\/key>\s*<array>[\s\S]*?duoc365\.com[\s\S]*?duocphamlinhphuong\.com[\s\S]*?<\/array>/.test(plist), sync);
+const bound = plist.match(/WKAppBoundDomains<\/key>\s*<array>([\s\S]*?)<\/array>/)?.[1] ?? "";
+check("WKAppBoundDomains có duoc365.com, duocphamlinhphuong.com, cloudflare.com (Turnstile ở Đăng nhập) — tối đa 10 mục",
+  ["duoc365.com", "duocphamlinhphuong.com", "cloudflare.com"].every((d) => bound.includes(`<string>${d}</string>`)) && (bound.match(/<string>/g) ?? []).length <= 10, sync);
 check("ATS không mở HTTP (không NSAllowsArbitraryLoads)", !plist.includes("NSAllowsArbitraryLoads"));
 check("Có màn khởi động (UILaunchStoryboardName) — bắt buộc từ 2020", plistString("UILaunchStoryboardName") === "LaunchScreen" && existsSync(join(app, "Base.lproj", "LaunchScreen.storyboard")));
 check("Chỉ arm64 (không armv7)", plist.includes("<string>arm64</string>") && !plist.includes("armv7"));

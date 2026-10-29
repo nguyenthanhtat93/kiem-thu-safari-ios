@@ -41,8 +41,10 @@ setKey("NSPhotoLibraryUsageDescription", "<string>Chọn ảnh trong thư viện
 setKey("NSPhotoLibraryAddUsageDescription", "<string>Lưu ảnh sản phẩm hoặc chứng từ vào thư viện ảnh khi bạn chọn lưu.</string>");
 setKey("ITSAppUsesNonExemptEncryption", "<false/>");
 setKey("UIBackgroundModes", "<array>\n\t\t<string>remote-notification</string>\n\t</array>");
-// Tên miền chính duoc365.com (cả tên miền con chat., drive., id., meet., pay.… — WebKit so theo tên miền gốc) và tên miền phụ.
-setKey("WKAppBoundDomains", "<array>\n\t\t<string>duoc365.com</string>\n\t\t<string>duocphamlinhphuong.com</string>\n\t</array>");
+// Tên miền chính duoc365.com (cả tên miền con chat., drive., id., meet., pay.… — WebKit so theo tên miền gốc), tên miền phụ, và
+// cloudflare.com cho khung Cloudflare Turnstile (challenges.cloudflare.com) ở Đăng nhập / Đăng ký: thiếu thì WebKit hạn chế khung
+// đó, ô xác minh báo lỗi và không đăng nhập được trong app (thử trên máy ảo 30/10/2026).
+setKey("WKAppBoundDomains", "<array>\n\t\t<string>duoc365.com</string>\n\t\t<string>duocphamlinhphuong.com</string>\n\t\t<string>cloudflare.com</string>\n\t</array>");
 setKey("UIRequiredDeviceCapabilities", "<array>\n\t\t<string>arm64</string>\n\t</array>");
 setKey("UISupportedInterfaceOrientations", "<array>\n\t\t<string>UIInterfaceOrientationPortrait</string>\n\t</array>");
 writeFileSync(plistPath, plist);

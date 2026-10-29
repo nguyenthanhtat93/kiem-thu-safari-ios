@@ -9,7 +9,8 @@
       "duoc365.com",
       "*.duoc365.com",
       "duocphamlinhphuong.com",
-      "*.duocphamlinhphuong.com"
+      "*.duocphamlinhphuong.com",
+      "challenges.cloudflare.com"
     ],
     "errorPath": "offline.html"
   },
