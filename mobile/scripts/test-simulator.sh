@@ -100,8 +100,9 @@ for flow in "$ROOT"/maestro/0*.yaml; do
     continue
   fi
   echo "== Maestro: $title"
+  # Mỗi kịch bản tối đa 8 phút (Maestro có lúc treo cả lượt Actions): perl alarm vì macOS không có `timeout`.
   run_flow() {
-    maestro --device "$UDID" test "$flow" \
+    perl -e 'alarm shift; exec @ARGV' 480 maestro --device "$UDID" test "$flow" \
       -e USERNAME="${USERNAME:-}" -e PASSWORD="${PASSWORD:-}" \
       --format junit --output "$OUT/maestro/$name.xml" \
       --debug-output "$OUT/maestro/$name" > "$OUT/maestro/$name.log" 2>&1

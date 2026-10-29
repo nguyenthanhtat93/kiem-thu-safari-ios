@@ -71,7 +71,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Quét mã vạch, mã QR trên hộp thuốc để tìm sản phẩm; chụp ảnh gửi cho nhân viên công ty trong khung chat (ví dụ ảnh chứng từ, ảnh sản phẩm) và gọi video trong chat.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Dùng micro cho cuộc gọi thoại và video với nhân viên công ty trong khung chat.</string>
+	<string>Dùng micro cho cuộc gọi thoại và video với nhân viên công ty trong khung chat và khi bạn tìm sản phẩm bằng giọng nói. Không ghi âm cuộc gọi.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Chọn ảnh trong thư viện để gửi cho nhân viên công ty trong khung chat.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
@@ -89,5 +89,7 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Dùng Face ID để đăng nhập nhanh và xác nhận đặt hàng, huỷ đơn, nhận hàng thay cho mật khẩu. Khuôn mặt chỉ được iPhone kiểm tra, không gửi đi đâu.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Chuyển lời bạn nói thành chữ khi bạn bấm nút giọng nói để tìm sản phẩm. Chỉ dùng khi bạn bấm nút.</string>
 </dict>
 </plist>

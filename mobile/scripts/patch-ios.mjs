@@ -34,7 +34,9 @@ setKey("CFBundleLocalizations", "<array>\n\t\t<string>vi</string>\n\t</array>");
 setKey("NSCameraUsageDescription", "<string>Quét mã vạch, mã QR trên hộp thuốc để tìm sản phẩm; chụp ảnh gửi cho nhân viên công ty trong khung chat (ví dụ ảnh chứng từ, ảnh sản phẩm) và gọi video trong chat.</string>");
 // Face ID (plugin @capgo/capacitor-native-biometric): thiếu khoá này app sẽ thoát khi hỏi Face ID.
 setKey("NSFaceIDUsageDescription", "<string>Dùng Face ID để đăng nhập nhanh và xác nhận đặt hàng, huỷ đơn, nhận hàng thay cho mật khẩu. Khuôn mặt chỉ được iPhone kiểm tra, không gửi đi đâu.</string>");
-setKey("NSMicrophoneUsageDescription", "<string>Dùng micro cho cuộc gọi thoại và video với nhân viên công ty trong khung chat.</string>");
+setKey("NSMicrophoneUsageDescription", "<string>Dùng micro cho cuộc gọi thoại và video với nhân viên công ty trong khung chat và khi bạn tìm sản phẩm bằng giọng nói. Không ghi âm cuộc gọi.</string>");
+// Ô tìm có nút giọng nói (Web Speech API của WebKit): thiếu khoá này iOS tắt hẳn app khi bấm nút (soát 30/10/2026).
+setKey("NSSpeechRecognitionUsageDescription", "<string>Chuyển lời bạn nói thành chữ khi bạn bấm nút giọng nói để tìm sản phẩm. Chỉ dùng khi bạn bấm nút.</string>");
 setKey("NSPhotoLibraryUsageDescription", "<string>Chọn ảnh trong thư viện để gửi cho nhân viên công ty trong khung chat.</string>");
 setKey("NSPhotoLibraryAddUsageDescription", "<string>Lưu ảnh sản phẩm hoặc chứng từ vào thư viện ảnh khi bạn chọn lưu.</string>");
 setKey("ITSAppUsesNonExemptEncryption", "<false/>");

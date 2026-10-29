@@ -33,7 +33,7 @@ const plist = read(join(app, "Info.plist"));
 const plistString = (key) => plist.match(new RegExp(`<key>${key}</key>\\s*<string>([^<]*)</string>`))?.[1];
 check("Tên hiển thị Dược365 (2.3.7: tên trên máy trùng tên app)", plistString("CFBundleDisplayName") === "Dược365", sync);
 // 5.1.1(i) + QC nativeShell.usageDescriptions: lý do xin quyền tiếng Việt, nói rõ dùng để làm gì (≥ 30 ký tự).
-for (const key of ["NSCameraUsageDescription", "NSFaceIDUsageDescription", "NSMicrophoneUsageDescription", "NSPhotoLibraryUsageDescription", "NSPhotoLibraryAddUsageDescription"]) {
+for (const key of ["NSCameraUsageDescription", "NSFaceIDUsageDescription", "NSMicrophoneUsageDescription", "NSSpeechRecognitionUsageDescription", "NSPhotoLibraryUsageDescription", "NSPhotoLibraryAddUsageDescription"]) {
   const text = plistString(key) ?? "";
   check(`5.1.1 Info.plist ${key} nói rõ mục đích`, text.length >= 30, sync);
 }
@@ -65,7 +65,7 @@ check("Không đụng API riêng của Apple (2.5.1)", !/_UIApplication|UIApplic
 // ------------------------------------------------------------------ Quyền riêng tư
 const privacy = read(join(app, "PrivacyInfo.xcprivacy"));
 check("PrivacyInfo.xcprivacy: không theo dõi, không tên miền theo dõi (5.1.2)", /NSPrivacyTracking<\/key>\s*<false\/>/.test(privacy) && /NSPrivacyTrackingDomains<\/key>\s*<array\/>/.test(privacy));
-for (const type of ["Name", "PhoneNumber", "EmailAddress", "PhysicalAddress", "PurchaseHistory", "PhotosorVideos", "OtherUserContent", "UserID", "DeviceID"]) {
+for (const type of ["Name", "PhoneNumber", "EmailAddress", "PhysicalAddress", "PurchaseHistory", "PhotosorVideos", "OtherUserContent", "UserID", "DeviceID", "ProductInteraction", "OtherFinancialInfo", "CustomerSupport", "OtherDataTypes", "CrashData", "SearchHistory"]) {
   check(`PrivacyInfo khai dữ liệu ${type} (khớp nhãn App Privacy)`, privacy.includes(`NSPrivacyCollectedDataType${type}<`));
 }
 check("PrivacyInfo khai lý do API UserDefaults (CA92.1)", privacy.includes("NSPrivacyAccessedAPICategoryUserDefaults") && privacy.includes("CA92.1"));

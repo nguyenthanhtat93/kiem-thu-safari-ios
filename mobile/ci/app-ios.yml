@@ -3,7 +3,14 @@
 # iPhone nhỏ, iPhone lớn nhất và iPad (app iPhone chạy chế độ tương thích — Apple duyệt cả trên iPad): Maestro bấm/gõ,
 # thông báo đẩy giả lập, giao diện tối, chữ lớn, soát văng app / WebView dừng. Chạy tay: gh workflow run app-ios.yml
 name: App iOS
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      viec:
+        description: "kiem-tra: thử trên máy ảo; testflight: dựng Release, ký, tải lên App Store Connect"
+        type: choice
+        options: [kiem-tra, testflight]
+        default: kiem-tra
 jobs:
   app-ios:
     runs-on: macos-15
@@ -25,8 +32,11 @@ jobs:
       - name: Đồng bộ Xcode project
         run: npm run ios:sync
       - name: Soát yêu cầu App Store
-        run: npm run check -- --bo-qua-team
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: if [ "${{ inputs.viec }}" = "testflight" ]; then npm run check; else npm run check -- --bo-qua-team; fi
       - name: Dựng cho máy ảo (một lần)
+        if: ${{ inputs.viec != 'testflight' }}
         run: |
           mkdir -p "$RUNNER_TEMP/ket-qua"
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator \
@@ -35,12 +45,15 @@ jobs:
           grep -E "warning:" "$RUNNER_TEMP/ket-qua/xcodebuild.log" | grep -v "/node_modules/\|SourcePackages" | sort -u | head -40 || true
           echo "APP_PATH=$(find "$RUNNER_TEMP/dd/Build/Products" -maxdepth 2 -name App.app -type d | head -1)" >> "$GITHUB_ENV"
       - uses: actions/setup-java@v4
+        if: ${{ inputs.viec != 'testflight' }}
         with: { distribution: temurin, java-version: "17" }
       - name: Cài Maestro
+        if: ${{ inputs.viec != 'testflight' }}
         run: |
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
       - name: Thử trên iPhone nhỏ, iPhone lớn, iPad
+        if: ${{ inputs.viec != 'testflight' }}
         env:
           USERNAME: ${{ secrets.APP_REVIEW_USERNAME }}
           PASSWORD: ${{ secrets.APP_REVIEW_PASSWORD }}
@@ -66,5 +79,40 @@ jobs:
           done
           exit $status
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ always() && inputs.viec != 'testflight' }}
         with: { name: ket-qua-app-ios, path: "${{ runner.temp }}/ket-qua", retention-days: 14 }
+      # Khoá App Store Connect ở Secrets của repo chạy workflow; ghi ra tệp tạm, xoá ngay khi xong (docs/app-store/README.md bước 3b).
+      - name: Dựng Release, ký tự động, tải lên App Store Connect
+        if: ${{ inputs.viec == 'testflight' }}
+        working-directory: mobile/ios/App
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          API_KEY: ${{ secrets.APPSTORE_API_KEY }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          for v in TEAM_ID KEY_ID ISSUER_ID API_KEY; do
+            [ -n "${!v}" ] || { echo "::error::Thiếu Secret cho $v (docs/app-store/README.md bước 3b)"; exit 1; }
+          done
+          umask 077
+          KEY_PATH="$RUNNER_TEMP/AuthKey_$KEY_ID.p8"
+          printf '%s\n' "$API_KEY" > "$KEY_PATH"
+          AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$KEY_PATH" -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER_ID")
+          xcodebuild archive -project App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" "${AUTH[@]}" | tail -n 40
+          test "${PIPESTATUS[0]}" -eq 0
+          OPTS="$RUNNER_TEMP/ExportOptions.plist"
+          plutil -create xml1 "$OPTS"
+          plutil -insert method -string app-store-connect "$OPTS"
+          plutil -insert destination -string upload "$OPTS"
+          plutil -insert teamID -string "$TEAM_ID" "$OPTS"
+          plutil -insert signingStyle -string automatic "$OPTS"
+          plutil -insert uploadSymbols -bool YES "$OPTS"
+          plutil -insert manageAppVersionAndBuildNumber -bool NO "$OPTS"
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" -exportOptionsPlist "$OPTS" -exportPath "$RUNNER_TEMP/export" "${AUTH[@]}"
+          echo "### Đã tải bản dựng $BUILD_NUMBER lên App Store Connect (5–30 phút sau hiện ở TestFlight)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Xoá khoá tạm
+        if: ${{ always() && inputs.viec == 'testflight' }}
+        run: rm -f "$RUNNER_TEMP"/AuthKey_*.p8
