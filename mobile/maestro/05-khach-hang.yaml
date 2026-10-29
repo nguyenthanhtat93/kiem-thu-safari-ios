@@ -1,0 +1,28 @@
+appId: vn.duocphamlinhphuong.app
+name: Khách hàng xem sản phẩm có giá, giỏ hàng, đơn hàng
+tags: [dang-nhap]
+---
+# Mở lại app: phiên đăng nhập phải còn (không bắt đăng nhập lại).
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Thông báo"
+    timeout: 60000
+# Trang chủ của khách là danh mục sản phẩm có giá.
+- tapOn: "Trang chủ"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: 05-danh-muc-co-gia
+# Thuốc kê đơn (nếu có trên màn hình) chỉ được "Đặt qua NVKD" — quy định 1.4.3.
+- runFlow:
+    when:
+      visible: ".*Đặt qua NVKD.*"
+    commands:
+      - takeScreenshot: 05-thuoc-ke-don
+- scroll
+- takeScreenshot: 05-danh-muc-cuon
+# Nút Đơn hàng cạnh tin nhắn ở đầu trang (có thể kèm số cập nhật chưa xem).
+- tapOn: "Đơn hàng.*"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: 05-don-hang

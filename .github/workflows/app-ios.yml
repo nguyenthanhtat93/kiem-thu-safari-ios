@@ -1,0 +1,70 @@
+# App iOS Dược365 (mobile/ của repo duoc365, chép sang repo công khai kiem-thu-safari-ios bằng scripts/thu-app-ios.sh
+# vì repo riêng tư không chạy được Actions máy Mac). Dựng không ký cho máy ảo một lần rồi thử như người dùng trên
+# iPhone nhỏ, iPhone lớn nhất và iPad (app iPhone chạy chế độ tương thích — Apple duyệt cả trên iPad): Maestro bấm/gõ,
+# thông báo đẩy giả lập, giao diện tối, chữ lớn, soát văng app / WebView dừng. Chạy tay: gh workflow run app-ios.yml
+name: App iOS
+on: workflow_dispatch
+jobs:
+  app-ios:
+    runs-on: macos-15
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Chọn Xcode mới nhất (Apple bắt dựng bằng iOS 26 SDK từ 28/04/2026)
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | grep -v beta | sort -V | tail -1)"
+          xcodebuild -version | tee "$RUNNER_TEMP/xcode.txt"
+          xcodebuild -showsdks | grep -i iphoneos | tee -a "$RUNNER_TEMP/xcode.txt"
+      - name: Cài Capacitor
+        run: npm ci
+      - name: Đồng bộ Xcode project
+        run: npm run ios:sync
+      - name: Soát yêu cầu App Store
+        run: npm run check -- --bo-qua-team
+      - name: Dựng cho máy ảo (một lần)
+        run: |
+          mkdir -p "$RUNNER_TEMP/ket-qua"
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGNING_ALLOWED=NO build \
+            > "$RUNNER_TEMP/ket-qua/xcodebuild.log" 2>&1 || { tail -n 80 "$RUNNER_TEMP/ket-qua/xcodebuild.log"; exit 1; }
+          grep -E "warning:" "$RUNNER_TEMP/ket-qua/xcodebuild.log" | grep -v "/node_modules/\|SourcePackages" | sort -u | head -40 || true
+          echo "APP_PATH=$(find "$RUNNER_TEMP/dd/Build/Products" -maxdepth 2 -name App.app -type d | head -1)" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - name: Cài Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+      - name: Thử trên iPhone nhỏ, iPhone lớn, iPad
+        env:
+          USERNAME: ${{ secrets.APP_REVIEW_USERNAME }}
+          PASSWORD: ${{ secrets.APP_REVIEW_PASSWORD }}
+          MAESTRO_CLI_NO_ANALYTICS: "1"
+        run: |
+          xcrun simctl list devices available
+          # Máy ảo mới nhất khớp mẫu đầu tiên có sẵn.
+          pick() { for pat in "$@"; do n="$(xcrun simctl list devices available | grep -E "$pat" | tail -1 | sed -E 's/^ *(.*) \([0-9A-F-]{36}\).*/\1/')"; [ -n "$n" ] && { echo "$n"; return; }; done; }
+          status=0
+          { echo "## App iOS trên máy ảo"; sed 's/^/    /' "$RUNNER_TEMP/xcode.txt"; } >> "$GITHUB_STEP_SUMMARY"
+          for key in nho lon ipad; do
+            case $key in
+              nho) name="$(pick 'iPhone SE' 'iPhone 1[0-9]e')" ;;
+              lon) name="$(pick 'iPhone 1[0-9] Pro Max')" ;;
+              ipad) name="$(pick 'iPad Pro 13' 'iPad Air 13' 'iPad \(')" ;;
+            esac
+            [ -n "$name" ] || { echo "Không có máy ảo cho $key"; continue; }
+            echo "== $key: $name"
+            OUT="$RUNNER_TEMP/ket-qua/$key" DEVICE_NAME="$name" bash scripts/test-simulator.sh || status=1
+            { echo "### $name"; cat "$RUNNER_TEMP/ket-qua/$key/tom-tat.md"; } >> "$GITHUB_STEP_SUMMARY"
+            udid="$(xcrun simctl list devices available | grep -F "$name (" | tail -1 | grep -oE '[0-9A-F-]{36}')"
+            xcrun simctl shutdown "$udid" || true
+          done
+          exit $status
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: ket-qua-app-ios, path: "${{ runner.temp }}/ket-qua", retention-days: 14 }

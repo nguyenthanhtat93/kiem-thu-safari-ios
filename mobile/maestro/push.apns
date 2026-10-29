@@ -1,0 +1,9 @@
+{
+  "Simulator Target Bundle": "vn.duocphamlinhphuong.app",
+  "aps": {
+    "alert": { "title": "Đơn hàng LP-TEST đã giao", "body": "Thử thông báo đẩy trên máy ảo" },
+    "sound": "default",
+    "badge": 1
+  },
+  "url": "/don-hang"
+}

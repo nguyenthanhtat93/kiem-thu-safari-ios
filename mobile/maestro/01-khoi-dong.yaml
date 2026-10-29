@@ -1,0 +1,23 @@
+appId: vn.duocphamlinhphuong.app
+name: Khởi động app lần đầu, đóng hẳn rồi mở lại
+tags: [khach]
+---
+# Cài mới: xoá dữ liệu cũ, cho sẵn quyền (máy ảo không bấm được hộp thoại hệ thống).
+- launchApp:
+    clearState: true
+    permissions:
+      notifications: allow
+      camera: allow
+      photos: allow
+# Màn chờ rồi mở duoc365.com — mạng chậm vẫn phải lên trong 60 giây (QC 2.1: không trắng trang).
+- extendedWaitUntil:
+    visible: "Phân phối dược phẩm.*"
+    timeout: 60000
+- assertVisible: "Đăng nhập"
+- takeScreenshot: 01-khoi-dong
+# Đóng hẳn rồi mở lại (khởi động nguội) vẫn vào được.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Phân phối dược phẩm.*"
+    timeout: 60000

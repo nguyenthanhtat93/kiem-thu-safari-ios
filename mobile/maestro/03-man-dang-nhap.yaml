@@ -1,0 +1,40 @@
+appId: vn.duocphamlinhphuong.app
+name: Màn đăng nhập đúng quy định App Store, sai mật khẩu không văng, mở Chính sách
+tags: [khach]
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Phân phối dược phẩm.*"
+    timeout: 60000
+- tapOn:
+    text: "Đăng nhập"
+    index: 0
+- extendedWaitUntil:
+    visible: "Quên mật khẩu\\?"
+    timeout: 20000
+# 4.8: trong vỏ app không có đăng nhập Google / Facebook / X.
+- assertNotVisible: "hoặc đăng nhập bằng"
+- assertNotVisible: "Facebook"
+- assertNotVisible: "Google"
+# 5.1.1(i): Chính sách bảo mật mở được ngay từ màn đăng nhập.
+- assertVisible: "Chính sách bảo mật"
+- takeScreenshot: 03-dang-nhap
+# Sai mật khẩu phải báo lỗi, không văng app.
+- tapOn: "Nick, Gmail, SĐT hoặc căn cước"
+- inputText: "0900000999"
+- tapOn: "Mật khẩu"
+- inputText: "sai-mat-khau-123"
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible: "Quên mật khẩu\\?"
+- takeScreenshot: 03-sai-mat-khau
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Chính sách bảo mật"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Chính sách bảo mật"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: 03-chinh-sach

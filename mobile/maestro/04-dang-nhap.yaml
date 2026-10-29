@@ -1,0 +1,38 @@
+appId: vn.duocphamlinhphuong.app
+name: Đăng nhập bằng tài khoản dùng thử và đồng ý điều khoản
+tags: [dang-nhap]
+---
+- launchApp:
+    clearState: true
+    permissions:
+      notifications: allow
+      camera: allow
+      photos: allow
+- extendedWaitUntil:
+    visible: "Phân phối dược phẩm.*"
+    timeout: 60000
+- tapOn:
+    text: "Đăng nhập"
+    index: 0
+- extendedWaitUntil:
+    visible: "Quên mật khẩu\\?"
+    timeout: 20000
+- tapOn: "Nick, Gmail, SĐT hoặc căn cước"
+- inputText: ${USERNAME}
+- tapOn: "Mật khẩu"
+- inputText: ${PASSWORD}
+- pressKey: Enter
+# Lần đầu: bảng đồng ý Điều khoản (quy định 1.2) — đọc, tích, bấm đồng ý.
+- runFlow:
+    when:
+      visible: "Đồng ý và tiếp tục"
+    commands:
+      - takeScreenshot: 04-dieu-khoan
+      - tapOn: "Tôi đã đọc và đồng ý.*"
+      - tapOn: "Đồng ý và tiếp tục"
+# Đã đăng nhập: thanh tab có Thông báo và Tài khoản.
+- extendedWaitUntil:
+    visible: "Thông báo"
+    timeout: 30000
+- assertNotVisible: "Đồng ý và tiếp tục"
+- takeScreenshot: 04-da-dang-nhap

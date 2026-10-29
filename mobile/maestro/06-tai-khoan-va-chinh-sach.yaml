@@ -1,0 +1,35 @@
+appId: vn.duocphamlinhphuong.app
+name: Tab Tài khoản — cài đặt, xoá tài khoản, hỗ trợ, chính sách
+tags: [dang-nhap]
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Thông báo"
+    timeout: 60000
+- tapOn: "Tài khoản"
+- extendedWaitUntil:
+    visible: "Cài đặt tài khoản"
+    timeout: 20000
+- takeScreenshot: 06-khac
+# Quy định 5.1.1(v): xoá tài khoản ngay trong app (chỉ kiểm tra có nút, không xoá thật).
+- tapOn: "Cài đặt tài khoản"
+- scrollUntilVisible:
+    element: "Xoá tài khoản"
+    direction: DOWN
+    timeout: 20000
+- takeScreenshot: 06-xoa-tai-khoan
+- tapOn: "Tài khoản"
+- tapOn: "Hỗ trợ"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: 06-ho-tro
+- tapOn: "Tài khoản"
+- tapOn: "Chính sách bảo mật"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: 06-chinh-sach-bao-mat
+- tapOn: "Tài khoản"
+- tapOn: "Điều khoản sử dụng"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: 06-dieu-khoan

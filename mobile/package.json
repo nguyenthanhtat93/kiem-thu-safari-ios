@@ -1,0 +1,25 @@
+{
+  "name": "linhphuong-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Vỏ app iOS (Capacitor) Dược365 của Công ty TNHH Dược phẩm Linh Phương: mở https://duoc365.com, nhận thông báo đẩy, Face ID, in.",
+  "scripts": {
+    "ios:add": "cap add ios --packagemanager SPM && node scripts/patch-ios.mjs",
+    "ios:sync": "cap sync ios && node scripts/patch-ios.mjs",
+    "ios:open": "cap open ios",
+    "ios:assets": "capacitor-assets generate --ios --iconBackgroundColor '#ffffff' --splashBackgroundColor '#ffffff'",
+    "check": "node scripts/check-ios.mjs"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.2",
+    "@capacitor/ios": "8.5.2",
+    "@capacitor/push-notifications": "8.1.2",
+    "@capacitor/splash-screen": "8.0.2",
+    "@capacitor/status-bar": "8.0.3",
+    "@capgo/capacitor-native-biometric": "8.7.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "8.5.2"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "appId": "vn.duocphamlinhphuong.app",
+  "appName": "Dược365",
+  "webDir": "www",
+  "server": {
+    "url": "https://duoc365.com",
+    "cleartext": false,
+    "allowNavigation": [
+      "duoc365.com",
+      "*.duoc365.com",
+      "duocphamlinhphuong.com",
+      "*.duocphamlinhphuong.com"
+    ],
+    "errorPath": "offline.html"
+  },
+  "ios": {
+    "appendUserAgent": "LinhPhuongApp/1.0",
+    "contentInset": "never",
+    "scheme": "App",
+    "limitsNavigationsToAppBoundDomains": true,
+    "preferredContentMode": "mobile",
+    "backgroundColor": "#ffffff"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
+    },
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "launchAutoHide": true,
+      "backgroundColor": "#ffffff",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#0f3963",
+      "overlaysWebView": false
+    }
+  }
+}
