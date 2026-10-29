@@ -90,6 +90,16 @@ START_TIME="$(date +%s)"
 touch "$OUT/.bat-dau"
 
 # ------------------------------------------------------------------ 3. Maestro
+# App đang chạy: launchctl đôi khi chưa liệt kê kịp ngay sau khi mở / đổi cỡ chữ — hỏi lại tối đa 5 lần.
+app_running() {
+  for _ in 1 2 3 4 5; do
+    sleep 2
+    xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE_ID" && return 0
+    # Tiến trình app của máy ảo chạy ngay trên máy Mac: còn PID lúc mở là app còn sống.
+    [ -n "${APP_PID:-}" ] && kill -0 "$APP_PID" 2>/dev/null && return 0
+  done
+  return 1
+}
 IPAD=0
 case "$DEVICE_NAME" in iPad*) IPAD=1 ;; esac
 if [ "$IPAD" = 1 ]; then
@@ -97,8 +107,8 @@ if [ "$IPAD" = 1 ]; then
   xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null && sleep 20
   xcrun simctl io "$UDID" screenshot "$OUT/anh/01-ipad-khoi-dong.png" > /dev/null 2>&1
   xcrun simctl terminate "$UDID" "$BUNDLE_ID" > /dev/null 2>&1
-  if xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null && sleep 15 \
-     && xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE_ID"; then
+  APP_PID="$(xcrun simctl launch "$UDID" "$BUNDLE_ID" | grep -oE '[0-9]+$')"
+  if [ -n "$APP_PID" ] && sleep 15 && app_running; then
     xcrun simctl io "$UDID" screenshot "$OUT/anh/01-ipad-mo-lai.png" > /dev/null 2>&1
     pass "iPad: mở app, đóng hẳn rồi mở lại vẫn chạy (ảnh 01-ipad-khoi-dong.png, 01-ipad-mo-lai.png)"
   else
@@ -164,19 +174,13 @@ xcrun simctl io "$UDID" screenshot "$OUT/anh/08-giao-dien-toi.png" > /dev/null 2
 xcrun simctl ui "$UDID" appearance light
 xcrun simctl ui "$UDID" content_size accessibility-extra-large
 xcrun simctl terminate "$UDID" "$BUNDLE_ID" > /dev/null 2>&1
-xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null && sleep 10
+APP_PID="$(xcrun simctl launch "$UDID" "$BUNDLE_ID" | grep -oE '[0-9]+$')" && sleep 10
 xcrun simctl io "$UDID" screenshot "$OUT/anh/09-chu-co-lon.png" > /dev/null 2>&1
 xcrun simctl ui "$UDID" content_size large
 pass "Mở app ở giao diện tối và chữ cỡ lớn (ảnh 08, 09)"
 
 # App còn chạy sau toàn bộ lượt test.
-# launchctl đôi khi chưa liệt kê kịp sau khi đổi cỡ chữ: hỏi lại tối đa 5 lần.
-running=0
-for _ in 1 2 3 4 5; do
-  sleep 2
-  if xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE_ID"; then running=1; break; fi
-done
-if [ "$running" = 1 ]; then
+if app_running; then
   pass "App vẫn chạy sau toàn bộ lượt test"
 else
   fail "App không còn chạy (có thể đã văng)"
