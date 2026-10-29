@@ -16,13 +16,13 @@ tags: [dang-nhap]
 # Thuốc kê đơn (nếu có trên màn hình) chỉ được "Đặt qua NVKD" — quy định 1.4.3.
 - runFlow:
     when:
-      visible: ".*Đặt qua NVKD.*"
+      visible: "(?s).*Đặt qua NVKD.*"
     commands:
       - takeScreenshot: 05-thuoc-ke-don
 - scroll
 - takeScreenshot: 05-danh-muc-cuon
 # Nút Đơn hàng cạnh tin nhắn ở đầu trang (có thể kèm số cập nhật chưa xem).
-- tapOn: "Đơn hàng.*"
+- tapOn: "(?s)Đơn hàng.*"
 - waitForAnimationToEnd:
     timeout: 10000
 - takeScreenshot: 05-don-hang

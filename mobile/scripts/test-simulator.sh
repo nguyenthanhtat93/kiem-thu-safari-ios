@@ -107,12 +107,16 @@ for flow in "$ROOT"/maestro/0*.yaml; do
       --format junit --output "$OUT/maestro/$name.xml" \
       --debug-output "$OUT/maestro/$name" > "$OUT/maestro/$name.log" 2>&1
   }
-  # Máy ảo GitHub đôi khi khởi động bộ điều khiển Maestro chậm (IOSDriverTimeoutException):
-  # lỗi công cụ, không phải lỗi app — chạy lại kịch bản đó một lần.
-  if run_flow || { grep -q "IOSDriverTimeoutException" "$OUT/maestro/$name.log" && echo "   (chạy lại: Maestro khởi động chậm)" && run_flow; }; then
+  # Máy ảo GitHub đôi khi khởi động bộ điều khiển Maestro chậm (IOSDriverTimeoutException) hoặc mất nối
+  # (DeviceUnreachableException): lỗi công cụ, không phải lỗi app — chạy lại kịch bản đó một lần.
+  if run_flow || { grep -qE "IOSDriverTimeoutException|DeviceUnreachableException" "$OUT/maestro/$name.log" "$OUT/maestro/$name.xml" 2>/dev/null \
+       && echo "   (chạy lại: Maestro khởi động chậm / mất nối máy ảo)" && run_flow; }; then
     pass "$title"
   else
     tail -n 30 "$OUT/maestro/$name.log"
+    # Cây phần tử lúc lỗi: xem Maestro đọc được chữ gì trên màn (nhãn trợ năng của WebView).
+    perl -e 'alarm shift; exec @ARGV' 120 maestro --device "$UDID" hierarchy > "$OUT/maestro/$name-cay.json" 2>/dev/null || true
+    xcrun simctl io "$UDID" screenshot "$OUT/maestro/$name-loi.png" > /dev/null 2>&1 || true
     fail "$title (xem maestro/$name.log và ảnh lỗi trong maestro/$name)"
   fi
 done
@@ -145,8 +149,13 @@ xcrun simctl ui "$UDID" content_size large
 pass "Mở app ở giao diện tối và chữ cỡ lớn (ảnh 08, 09)"
 
 # App còn chạy sau toàn bộ lượt test.
-sleep 2
-if xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE_ID"; then
+# launchctl đôi khi chưa liệt kê kịp sau khi đổi cỡ chữ: hỏi lại tối đa 5 lần.
+running=0
+for _ in 1 2 3 4 5; do
+  sleep 2
+  if xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE_ID"; then running=1; break; fi
+done
+if [ "$running" = 1 ]; then
   pass "App vẫn chạy sau toàn bộ lượt test"
 else
   fail "App không còn chạy (có thể đã văng)"

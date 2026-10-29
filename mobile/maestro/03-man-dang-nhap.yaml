@@ -4,7 +4,7 @@ tags: [khach]
 ---
 - launchApp
 - extendedWaitUntil:
-    visible: "Phân phối dược phẩm.*"
+    visible: "(?s).*Phân phối dược phẩm.*"
     timeout: 60000
 - tapOn:
     text: "Đăng nhập"

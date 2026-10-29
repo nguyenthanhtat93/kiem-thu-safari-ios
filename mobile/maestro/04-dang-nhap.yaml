@@ -9,7 +9,7 @@ tags: [dang-nhap]
       camera: allow
       photos: allow
 - extendedWaitUntil:
-    visible: "Phân phối dược phẩm.*"
+    visible: "(?s).*Phân phối dược phẩm.*"
     timeout: 60000
 - tapOn:
     text: "Đăng nhập"
@@ -28,7 +28,7 @@ tags: [dang-nhap]
       visible: "Đồng ý và tiếp tục"
     commands:
       - takeScreenshot: 04-dieu-khoan
-      - tapOn: "Tôi đã đọc và đồng ý.*"
+      - tapOn: "(?s).*Tôi đã đọc và đồng ý.*"
       - tapOn: "Đồng ý và tiếp tục"
 # Đã đăng nhập: thanh tab có Thông báo và Tài khoản.
 - extendedWaitUntil:

@@ -11,7 +11,7 @@ tags: [khach]
       photos: allow
 # Màn chờ rồi mở duoc365.com — mạng chậm vẫn phải lên trong 60 giây (QC 2.1: không trắng trang).
 - extendedWaitUntil:
-    visible: "Phân phối dược phẩm.*"
+    visible: "(?s).*Phân phối dược phẩm.*"
     timeout: 60000
 - assertVisible: "Đăng nhập"
 - takeScreenshot: 01-khoi-dong
@@ -19,5 +19,5 @@ tags: [khach]
 - stopApp
 - launchApp
 - extendedWaitUntil:
-    visible: "Phân phối dược phẩm.*"
+    visible: "(?s).*Phân phối dược phẩm.*"
     timeout: 60000
