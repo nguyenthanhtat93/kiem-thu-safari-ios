@@ -16,6 +16,10 @@ tags: [khach]
 - assertNotVisible: "hoặc đăng nhập bằng"
 - assertNotVisible: "Facebook"
 - assertNotVisible: "Google"
+# Ô Cloudflare Turnstile chạy được trong app (WKAppBoundDomains có cloudflare.com) — trước báo lỗi, không đăng nhập được.
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertNotVisible: "(?s).*Không tải được ô xác minh Cloudflare.*"
 # 5.1.1(i): Chính sách bảo mật mở được ngay từ màn đăng nhập.
 - assertVisible: "Chính sách bảo mật"
 - takeScreenshot: 03-dang-nhap

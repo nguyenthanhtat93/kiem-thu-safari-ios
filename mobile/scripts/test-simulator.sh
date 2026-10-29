@@ -90,11 +90,32 @@ START_TIME="$(date +%s)"
 touch "$OUT/.bat-dau"
 
 # ------------------------------------------------------------------ 3. Maestro
+IPAD=0
+case "$DEVICE_NAME" in iPad*) IPAD=1 ;; esac
+if [ "$IPAD" = 1 ]; then
+  # Mở app, chờ trang tải, chụp; đóng hẳn rồi mở lại (khởi động nguội) và chụp lần nữa.
+  xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null && sleep 20
+  xcrun simctl io "$UDID" screenshot "$OUT/anh/01-ipad-khoi-dong.png" > /dev/null 2>&1
+  xcrun simctl terminate "$UDID" "$BUNDLE_ID" > /dev/null 2>&1
+  if xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null && sleep 15 \
+     && xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE_ID"; then
+    xcrun simctl io "$UDID" screenshot "$OUT/anh/01-ipad-mo-lai.png" > /dev/null 2>&1
+    pass "iPad: mở app, đóng hẳn rồi mở lại vẫn chạy (ảnh 01-ipad-khoi-dong.png, 01-ipad-mo-lai.png)"
+  else
+    fail "iPad: mở lại app không chạy"
+  fi
+fi
 export MAESTRO_DRIVER_STARTUP_TIMEOUT="${MAESTRO_DRIVER_STARTUP_TIMEOUT:-180000}"
 cd "$OUT/anh"
 for flow in "$ROOT"/maestro/0*.yaml; do
   name="$(basename "$flow" .yaml)"
   title="$(sed -n 's/^name: //p' "$flow")"
+  # App chỉ iPhone chạy trên iPad ở chế độ tương thích: Maestro (XCUITest) chỉ thấy màn hình chính, không đọc được
+  # cửa sổ app (cây phần tử 30/10/2026) — iPad thử bằng mở app, chụp màn, khởi động nguội ở dưới thay cho kịch bản bấm.
+  if [ "$IPAD" = 1 ]; then
+    skip "$title — iPad chạy app iPhone ở chế độ tương thích, Maestro không đọc được cửa sổ app (thử bằng ảnh màn + khởi động nguội)"
+    continue
+  fi
   if grep -q 'tags: \[dang-nhap\]' "$flow" && { [ -z "${USERNAME:-}" ] || [ -z "${PASSWORD:-}" ]; }; then
     skip "$title — chưa có tài khoản dùng thử (secret APP_REVIEW_USERNAME/PASSWORD)"
     continue
