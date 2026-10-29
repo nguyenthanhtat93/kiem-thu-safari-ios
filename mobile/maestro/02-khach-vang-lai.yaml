@@ -11,7 +11,10 @@ tags: [khach]
 - scrollUntilVisible:
     element: "(?s).*Thuốc tân dược.*"
     direction: DOWN
-    timeout: 20000
+    timeout: 30000
+    speed: 40
+    visibilityPercentage: 50
+    centerElement: true
 - takeScreenshot: 02-nhom-hang
 - scrollUntilVisible:
     element: "(?s).*Đối tác của chúng tôi.*"
@@ -23,6 +26,10 @@ tags: [khach]
     element: "(?s).*Thuốc tân dược.*"
     direction: UP
     timeout: 30000
+    speed: 40
+    visibilityPercentage: 50
+    centerElement: true
+- waitForAnimationToEnd
 - tapOn: "(?s).*Thuốc tân dược.*"
 - extendedWaitUntil:
     visible: "Quên mật khẩu\\?"
