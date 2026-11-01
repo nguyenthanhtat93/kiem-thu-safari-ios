@@ -17,22 +17,20 @@ tags: [khach]
     visibilityPercentage: 50
     centerElement: true
 - takeScreenshot: 02-nhom-hang
-- scrollUntilVisible:
-    element: "(?s).*Đối tác của chúng tôi.*"
-    direction: DOWN
-    timeout: 90000
-- takeScreenshot: 02-doi-tac
-# Nhóm hàng của khách mở màn đăng nhập (giá chỉ cho khách có tài khoản).
-- scrollUntilVisible:
-    element: "(?s).*Thuốc tân dược.*"
-    direction: UP
-    timeout: 90000
-    speed: 40
-    visibilityPercentage: 50
-    centerElement: true
-- waitForAnimationToEnd
+# Bấm nhóm hàng ngay khi tới (trước đây cuộn xuống dải đối tác rồi cuộn ngược lên: ba lần cuộn trên trang có hiệu ứng chạy
+# liên tục làm iPhone Pro Max quá 8 phút, lượt 41319166089). Dải đối tác cuối trang xem ở lượt mở lại app.
 - tapOn: "(?s).*Thuốc tân dược.*"
 - extendedWaitUntil:
     visible: "Quên mật khẩu\\?"
     timeout: 20000
 - takeScreenshot: 02-mo-dang-nhap
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible: "(?s).*Phân phối dược phẩm.*"
+    timeout: 60000
+- scrollUntilVisible:
+    element: "(?s).*Đối tác của chúng tôi.*"
+    direction: DOWN
+    timeout: 90000
+- takeScreenshot: 02-doi-tac
