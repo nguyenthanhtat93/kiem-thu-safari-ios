@@ -14,7 +14,7 @@ on:
 jobs:
   app-ios:
     runs-on: macos-15
-    timeout-minutes: 75
+    timeout-minutes: 120
     defaults:
       run:
         working-directory: mobile
