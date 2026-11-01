@@ -23,6 +23,11 @@ tags: [dang-nhap]
     timeout: 20000
 - takeScreenshot: 06-xoa-tai-khoan
 # Về trang Tài khoản bằng nút kính "Quay lại" ở chỗ logo (chữ "Tài khoản" trùng tiêu đề trang, không dùng để bấm).
+# Đầu trang cuộn theo trang: cuộn ngược lên tới khi thấy nút (trang Cài đặt mở ở thẻ Xoá tài khoản cuối trang).
+- scrollUntilVisible:
+    element: "Quay lại"
+    direction: UP
+    timeout: 20000
 - tapOn: "Quay lại"
 - scrollUntilVisible:
     element: "Tài khoản của tôi"
@@ -37,6 +42,11 @@ tags: [dang-nhap]
     timeout: 10000
 - takeScreenshot: 06-ho-tro
 # Về trang Tài khoản bằng nút kính "Quay lại" ở chỗ logo (chữ "Tài khoản" trùng tiêu đề trang, không dùng để bấm).
+# Đầu trang cuộn theo trang: cuộn ngược lên tới khi thấy nút (trang Cài đặt mở ở thẻ Xoá tài khoản cuối trang).
+- scrollUntilVisible:
+    element: "Quay lại"
+    direction: UP
+    timeout: 20000
 - tapOn: "Quay lại"
 - scrollUntilVisible:
     element: "Tài khoản của tôi"
@@ -51,6 +61,11 @@ tags: [dang-nhap]
     timeout: 10000
 - takeScreenshot: 06-chinh-sach-bao-mat
 # Về trang Tài khoản bằng nút kính "Quay lại" ở chỗ logo (chữ "Tài khoản" trùng tiêu đề trang, không dùng để bấm).
+# Đầu trang cuộn theo trang: cuộn ngược lên tới khi thấy nút (trang Cài đặt mở ở thẻ Xoá tài khoản cuối trang).
+- scrollUntilVisible:
+    element: "Quay lại"
+    direction: UP
+    timeout: 20000
 - tapOn: "Quay lại"
 - scrollUntilVisible:
     element: "Tài khoản của tôi"
