@@ -167,6 +167,10 @@ for flow in "$ROOT"/maestro/0*.yaml; do
       --format junit --output "$OUT/maestro/$name.xml" \
       --debug-output "$OUT/maestro/$name" > "$OUT/maestro/$name.log" 2>&1 || rc=$?
     pkill -f 'maestro\.cli' 2>/dev/null || true
+    # Maestro có lúc báo "Flow Passed" rồi không tự thoát, bị alarm cắt (mã 142; lượt 41328397457, Pro Max): kịch bản đã đạt.
+    if [ "$rc" -ne 0 ] && grep -q "Flow Passed" "$OUT/maestro/$name.log" 2>/dev/null && ! grep -q "Flow Failed" "$OUT/maestro/$name.log"; then
+      echo "   (Maestro đã báo đạt nhưng không tự thoát, mã $rc — tính đạt)"; rc=0
+    fi
     [ "$rc" -eq 0 ] || echo "   (mã thoát $rc lúc $(date -u +%H:%MZ))"
     return "$rc"
   }

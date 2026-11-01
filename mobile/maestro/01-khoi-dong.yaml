@@ -9,10 +9,11 @@ tags: [khach]
       notifications: allow
       camera: allow
       photos: allow
-# Màn chờ rồi mở duoc365.com — mạng chậm vẫn phải lên trong 60 giây (QC 2.1: không trắng trang).
+# Màn chờ rồi mở duoc365.com (QC 2.1: không trắng trang). Lần mở đầu sau khi cài cho 120 giây: máy ảo GitHub mới cài có lúc
+# mất 20 giây chỉ để khởi động tiến trình WebKit (lượt 41328397457: "WebContent process took 20.1 seconds to launch").
 - extendedWaitUntil:
     visible: "(?s).*Phân phối dược phẩm.*"
-    timeout: 60000
+    timeout: 120000
 - assertVisible: "Đăng nhập"
 - takeScreenshot: 01-khoi-dong
 # Đóng hẳn rồi mở lại (khởi động nguội) vẫn vào được.

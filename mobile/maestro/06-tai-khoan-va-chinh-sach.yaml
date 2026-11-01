@@ -7,33 +7,59 @@ tags: [dang-nhap]
     visible: "Thông báo.*"
     timeout: 60000
 - tapOn: "Tài khoản"
+# Trang Tài khoản điện thoại (MobileMore): mục tài khoản liệt kê thẳng, không còn ô "Cài đặt tài khoản" (lượt 41328397457).
 - extendedWaitUntil:
-    visible: "Cài đặt tài khoản"
+    visible: "Tài khoản của tôi"
     timeout: 20000
 - takeScreenshot: 06-khac
 # Quy định 5.1.1(v): xoá tài khoản ngay trong app (chỉ kiểm tra có nút, không xoá thật).
-- tapOn: "Cài đặt tài khoản"
 - scrollUntilVisible:
     element: "Xoá tài khoản"
     direction: DOWN
     timeout: 20000
+- tapOn: "Xoá tài khoản"
+- extendedWaitUntil:
+    visible: "Xem chi tiết"
+    timeout: 20000
 - takeScreenshot: 06-xoa-tai-khoan
-# Cuộn xuống thì thanh tab đáy tự ẩn (như thanhtat.com); cuộn ngược lên để nó hiện lại.
+# Về trang Tài khoản bằng nút kính "Quay lại" ở chỗ logo (chữ "Tài khoản" trùng tiêu đề trang, không dùng để bấm).
+- tapOn: "Quay lại"
 - scrollUntilVisible:
-    element: "Tài khoản"
+    element: "Tài khoản của tôi"
     direction: UP
     timeout: 20000
-- tapOn: "Tài khoản"
+- scrollUntilVisible:
+    element: "Hỗ trợ"
+    direction: DOWN
+    timeout: 20000
 - tapOn: "Hỗ trợ"
 - waitForAnimationToEnd:
     timeout: 10000
 - takeScreenshot: 06-ho-tro
-- tapOn: "Tài khoản"
+# Về trang Tài khoản bằng nút kính "Quay lại" ở chỗ logo (chữ "Tài khoản" trùng tiêu đề trang, không dùng để bấm).
+- tapOn: "Quay lại"
+- scrollUntilVisible:
+    element: "Tài khoản của tôi"
+    direction: UP
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Chính sách bảo mật"
+    direction: DOWN
+    timeout: 20000
 - tapOn: "Chính sách bảo mật"
 - waitForAnimationToEnd:
     timeout: 10000
 - takeScreenshot: 06-chinh-sach-bao-mat
-- tapOn: "Tài khoản"
+# Về trang Tài khoản bằng nút kính "Quay lại" ở chỗ logo (chữ "Tài khoản" trùng tiêu đề trang, không dùng để bấm).
+- tapOn: "Quay lại"
+- scrollUntilVisible:
+    element: "Tài khoản của tôi"
+    direction: UP
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Điều khoản sử dụng"
+    direction: DOWN
+    timeout: 20000
 - tapOn: "Điều khoản sử dụng"
 - waitForAnimationToEnd:
     timeout: 10000
