@@ -24,7 +24,7 @@ tags: [khach]
 - assertVisible: "Chính sách bảo mật"
 - takeScreenshot: 03-dang-nhap
 # Sai mật khẩu phải báo lỗi, không văng app.
-- tapOn: "Nick, Gmail, SĐT hoặc căn cước"
+- tapOn: "Nick, Gmail hoặc SĐT"
 - inputText: "0900000999"
 - tapOn: "Mật khẩu"
 - inputText: "sai-mat-khau-123"

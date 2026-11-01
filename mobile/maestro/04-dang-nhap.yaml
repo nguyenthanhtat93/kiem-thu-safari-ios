@@ -17,7 +17,7 @@ tags: [dang-nhap]
 - extendedWaitUntil:
     visible: "Quên mật khẩu\\?"
     timeout: 20000
-- tapOn: "Nick, Gmail, SĐT hoặc căn cước"
+- tapOn: "Nick, Gmail hoặc SĐT"
 - inputText: ${USERNAME}
 - tapOn: "Mật khẩu"
 - inputText: ${PASSWORD}
@@ -32,7 +32,7 @@ tags: [dang-nhap]
       - tapOn: "Đồng ý và tiếp tục"
 # Đã đăng nhập: thanh tab có Thông báo và Tài khoản.
 - extendedWaitUntil:
-    visible: "Thông báo"
+    visible: "Thông báo.*"
     timeout: 30000
 - assertNotVisible: "Đồng ý và tiếp tục"
 - takeScreenshot: 04-da-dang-nhap

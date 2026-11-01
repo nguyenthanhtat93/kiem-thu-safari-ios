@@ -7,11 +7,12 @@ tags: [khach]
     visible: "(?s).*Phân phối dược phẩm.*"
     timeout: 60000
 - takeScreenshot: 02-trang-chu
-# Cuộn như người dùng tới dải đối tác cuối trang.
+# Cuộn như người dùng tới dải đối tác cuối trang. Trang có hiệu ứng chạy liên tục (tỉnh tuyển dụng sáng lần lượt, dải logo đối tác)
+# nên Maestro chờ màn đứng yên lâu sau mỗi lần vuốt — cho 90 giây (30 giây trượt từ 01/11/2026).
 - scrollUntilVisible:
     element: "(?s).*Thuốc tân dược.*"
     direction: DOWN
-    timeout: 30000
+    timeout: 90000
     speed: 40
     visibilityPercentage: 50
     centerElement: true
@@ -19,13 +20,13 @@ tags: [khach]
 - scrollUntilVisible:
     element: "(?s).*Đối tác của chúng tôi.*"
     direction: DOWN
-    timeout: 30000
+    timeout: 90000
 - takeScreenshot: 02-doi-tac
 # Nhóm hàng của khách mở màn đăng nhập (giá chỉ cho khách có tài khoản).
 - scrollUntilVisible:
     element: "(?s).*Thuốc tân dược.*"
     direction: UP
-    timeout: 30000
+    timeout: 90000
     speed: 40
     visibilityPercentage: 50
     centerElement: true

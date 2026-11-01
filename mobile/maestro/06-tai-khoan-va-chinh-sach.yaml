@@ -4,7 +4,7 @@ tags: [dang-nhap]
 ---
 - launchApp
 - extendedWaitUntil:
-    visible: "Thông báo"
+    visible: "Thông báo.*"
     timeout: 60000
 - tapOn: "Tài khoản"
 - extendedWaitUntil:
@@ -18,6 +18,11 @@ tags: [dang-nhap]
     direction: DOWN
     timeout: 20000
 - takeScreenshot: 06-xoa-tai-khoan
+# Cuộn xuống thì thanh tab đáy tự ẩn (như thanhtat.com); cuộn ngược lên để nó hiện lại.
+- scrollUntilVisible:
+    element: "Tài khoản"
+    direction: UP
+    timeout: 20000
 - tapOn: "Tài khoản"
 - tapOn: "Hỗ trợ"
 - waitForAnimationToEnd:
