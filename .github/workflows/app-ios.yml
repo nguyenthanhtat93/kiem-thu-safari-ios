@@ -78,7 +78,7 @@ jobs:
             OUT="$RUNNER_TEMP/ket-qua/$key" DEVICE_NAME="$name" bash scripts/test-simulator.sh || status=1
             { echo "### $name"; cat "$RUNNER_TEMP/ket-qua/$key/tom-tat.md"; } >> "$GITHUB_STEP_SUMMARY"
             udid="$(xcrun simctl list devices available | grep -F "$name (" | tail -1 | grep -oE '[0-9A-F-]{36}')"
-            xcrun simctl shutdown "$udid" || true
+            perl -e 'alarm shift; exec @ARGV' 120 xcrun simctl shutdown "$udid" || true
           done
           exit $status
       - uses: actions/upload-artifact@v4

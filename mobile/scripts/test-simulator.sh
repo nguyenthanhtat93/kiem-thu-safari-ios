@@ -75,13 +75,29 @@ for runtime, devices in sorted(json.load(sys.stdin)['devices'].items(), reverse=
 if [ -z "$UDID" ]; then fail "Không tìm thấy máy ảo iPhone"; exit 1; fi
 echo "== Máy ảo: $DEVICE_NAME ($UDID)"
 echo "" >> "$SUMMARY"
-xcrun simctl boot "$UDID" 2>/dev/null || true
-xcrun simctl bootstatus "$UDID" -b > /dev/null
-xcrun simctl ui "$UDID" appearance light
-xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 \
+# Mọi lệnh simctl có giới hạn (macOS không có `timeout`): máy ảo GitHub có lúc đứng (GL vẽ phần mềm) làm `simctl push`
+# treo 27 phút, cả bước quá 95 phút, iPhone lớn / iPad không được thử (lượt 41303572865).
+lim() { local s="$1"; shift; perl -e 'alarm shift; exec @ARGV' "$s" "$@"; }
+boot_sim() {
+  lim 120 xcrun simctl boot "$UDID" 2>/dev/null || true
+  lim 300 xcrun simctl bootstatus "$UDID" -b > /dev/null || echo "   (máy ảo khởi động chậm quá 5 phút)"
+}
+# Khởi động lại máy ảo khi Maestro mất nối (IOSDriverTimeoutException / DeviceUnreachableException): thử lại ngay trên máy
+# ảo đang đứng thì lại hỏng y như cũ.
+reboot_sim() {
+  pkill -f 'maestro\.cli' 2>/dev/null || true
+  pkill -f 'maestro-driver' 2>/dev/null || true
+  lim 120 xcrun simctl shutdown "$UDID" > /dev/null 2>&1 || true
+  boot_sim
+  lim 60 xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 \
+    --cellularBars 4 --wifiBars 3 2>/dev/null || true
+}
+boot_sim
+lim 30 xcrun simctl ui "$UDID" appearance light
+lim 60 xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 \
   --cellularBars 4 --wifiBars 3 2>/dev/null || true
 
-if xcrun simctl install "$UDID" "$APP_PATH"; then pass "Cài app lên $DEVICE_NAME"; else fail "Cài app"; exit 1; fi
+if lim 600 xcrun simctl install "$UDID" "$APP_PATH"; then pass "Cài app lên $DEVICE_NAME"; else fail "Cài app"; exit 1; fi
 
 # Quay video toàn bộ lượt test.
 xcrun simctl io "$UDID" recordVideo --codec h264 --force "$OUT/video.mp4" > /dev/null 2>&1 &
@@ -94,7 +110,7 @@ touch "$OUT/.bat-dau"
 app_running() {
   for _ in 1 2 3 4 5; do
     sleep 2
-    xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE_ID" && return 0
+    lim 30 xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE_ID" && return 0
     # Tiến trình app của máy ảo chạy ngay trên máy Mac: còn PID lúc mở là app còn sống.
     [ -n "${APP_PID:-}" ] && kill -0 "$APP_PID" 2>/dev/null && return 0
   done
@@ -104,18 +120,25 @@ IPAD=0
 case "$DEVICE_NAME" in iPad*) IPAD=1 ;; esac
 if [ "$IPAD" = 1 ]; then
   # Mở app, chờ trang tải, chụp; đóng hẳn rồi mở lại (khởi động nguội) và chụp lần nữa.
-  xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null && sleep 20
-  xcrun simctl io "$UDID" screenshot "$OUT/anh/01-ipad-khoi-dong.png" > /dev/null 2>&1
-  xcrun simctl terminate "$UDID" "$BUNDLE_ID" > /dev/null 2>&1
-  APP_PID="$(xcrun simctl launch "$UDID" "$BUNDLE_ID" | grep -oE '[0-9]+$')"
+  lim 60 xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null && sleep 20
+  lim 30 xcrun simctl io "$UDID" screenshot "$OUT/anh/01-ipad-khoi-dong.png" > /dev/null 2>&1
+  lim 30 xcrun simctl terminate "$UDID" "$BUNDLE_ID" > /dev/null 2>&1
+  APP_PID="$(lim 60 xcrun simctl launch "$UDID" "$BUNDLE_ID" | grep -oE '[0-9]+$')"
   if [ -n "$APP_PID" ] && sleep 15 && app_running; then
-    xcrun simctl io "$UDID" screenshot "$OUT/anh/01-ipad-mo-lai.png" > /dev/null 2>&1
+    lim 30 xcrun simctl io "$UDID" screenshot "$OUT/anh/01-ipad-mo-lai.png" > /dev/null 2>&1
     pass "iPad: mở app, đóng hẳn rồi mở lại vẫn chạy (ảnh 01-ipad-khoi-dong.png, 01-ipad-mo-lai.png)"
   else
     fail "iPad: mở lại app không chạy"
   fi
 fi
-export MAESTRO_DRIVER_STARTUP_TIMEOUT="${MAESTRO_DRIVER_STARTUP_TIMEOUT:-180000}"
+export MAESTRO_DRIVER_STARTUP_TIMEOUT="${MAESTRO_DRIVER_STARTUP_TIMEOUT:-300000}"
+# Khởi động sẵn bộ điều khiển XCTest của Maestro (lần đầu cài lên máy ảo mất vài phút) để kịch bản đầu không ăn hết giờ chờ.
+if [ "$IPAD" = 0 ]; then
+  echo "== Khởi động bộ điều khiển Maestro ($(date -u +%H:%MZ))"
+  lim 420 maestro --device "$UDID" hierarchy > /dev/null 2>&1 || { echo "   (chưa lên — khởi động lại máy ảo)"; reboot_sim; }
+  pkill -f 'maestro\.cli' 2>/dev/null || true
+fi
+TOOL_FAILS=0
 cd "$OUT/anh"
 for flow in "$ROOT"/maestro/0*.yaml; do
   name="$(basename "$flow" .yaml)"
@@ -128,6 +151,10 @@ for flow in "$ROOT"/maestro/0*.yaml; do
   fi
   if grep -q 'tags: \[dang-nhap\]' "$flow" && { [ -z "${USERNAME:-}" ] || [ -z "${PASSWORD:-}" ]; }; then
     skip "$title — chưa có tài khoản dùng thử (secret APP_REVIEW_USERNAME/PASSWORD)"
+    continue
+  fi
+  if [ "$TOOL_FAILS" -ge 2 ]; then
+    fail "$title — chưa chạy: Maestro mất nối máy ảo hai kịch bản liền (lỗi công cụ thử, không phải lỗi app)"
     continue
   fi
   echo "== Maestro: $title ($(date -u +%H:%MZ))"
@@ -145,14 +172,16 @@ for flow in "$ROOT"/maestro/0*.yaml; do
   }
   # Máy ảo GitHub đôi khi khởi động bộ điều khiển Maestro chậm (IOSDriverTimeoutException) hoặc mất nối
   # (DeviceUnreachableException): lỗi công cụ, không phải lỗi app — chạy lại kịch bản đó một lần.
-  if run_flow || { grep -qE "IOSDriverTimeoutException|DeviceUnreachableException" "$OUT/maestro/$name.log" "$OUT/maestro/$name.xml" 2>/dev/null \
-       && echo "   (chạy lại: Maestro khởi động chậm / mất nối máy ảo)" && run_flow; }; then
+  tool_err() { grep -qE "IOSDriverTimeoutException|DeviceUnreachableException" "$OUT/maestro/$name.log" "$OUT/maestro/$name.xml" 2>/dev/null; }
+  if run_flow || { tool_err && echo "   (chạy lại sau khi khởi động lại máy ảo: Maestro mất nối)" && reboot_sim && run_flow; }; then
     pass "$title"
+    TOOL_FAILS=0
   else
+    if tool_err; then TOOL_FAILS=$((TOOL_FAILS + 1)); else TOOL_FAILS=0; fi
     tail -n 30 "$OUT/maestro/$name.log"
     # Cây phần tử lúc lỗi: xem Maestro đọc được chữ gì trên màn (nhãn trợ năng của WebView).
     perl -e 'alarm shift; exec @ARGV' 120 maestro --device "$UDID" hierarchy > "$OUT/maestro/$name-cay.json" 2>/dev/null || true
-    xcrun simctl io "$UDID" screenshot "$OUT/maestro/$name-loi.png" > /dev/null 2>&1 || true
+    lim 30 xcrun simctl io "$UDID" screenshot "$OUT/maestro/$name-loi.png" > /dev/null 2>&1 || true
     fail "$title (xem maestro/$name.log và ảnh lỗi trong maestro/$name)"
   fi
 done
@@ -160,11 +189,11 @@ cd "$ROOT"
 
 # ------------------------------------------------------------------ 4. Thông báo đẩy
 echo "== Thông báo đẩy giả lập"
-xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null
+lim 60 xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null
 sleep 8
-if xcrun simctl push "$UDID" "$BUNDLE_ID" "$ROOT/maestro/push.apns"; then
+if lim 60 xcrun simctl push "$UDID" "$BUNDLE_ID" "$ROOT/maestro/push.apns"; then
   sleep 3
-  xcrun simctl io "$UDID" screenshot "$OUT/anh/07-thong-bao-day.png" > /dev/null 2>&1
+  lim 30 xcrun simctl io "$UDID" screenshot "$OUT/anh/07-thong-bao-day.png" > /dev/null 2>&1
   pass "Nhận thông báo đẩy khi app đang mở (ảnh 07-thong-bao-day.png)"
 else
   fail "Gửi thông báo đẩy giả lập"
@@ -172,16 +201,16 @@ fi
 
 # ------------------------------------------------------------------ 5. Giao diện tối, chữ lớn
 echo "== Giao diện tối và chữ cỡ lớn"
-xcrun simctl ui "$UDID" appearance dark
-xcrun simctl terminate "$UDID" "$BUNDLE_ID" > /dev/null 2>&1
-xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null && sleep 10
-xcrun simctl io "$UDID" screenshot "$OUT/anh/08-giao-dien-toi.png" > /dev/null 2>&1
-xcrun simctl ui "$UDID" appearance light
-xcrun simctl ui "$UDID" content_size accessibility-extra-large
-xcrun simctl terminate "$UDID" "$BUNDLE_ID" > /dev/null 2>&1
-APP_PID="$(xcrun simctl launch "$UDID" "$BUNDLE_ID" | grep -oE '[0-9]+$')" && sleep 10
-xcrun simctl io "$UDID" screenshot "$OUT/anh/09-chu-co-lon.png" > /dev/null 2>&1
-xcrun simctl ui "$UDID" content_size large
+lim 30 xcrun simctl ui "$UDID" appearance dark
+lim 30 xcrun simctl terminate "$UDID" "$BUNDLE_ID" > /dev/null 2>&1
+lim 60 xcrun simctl launch "$UDID" "$BUNDLE_ID" > /dev/null && sleep 10
+lim 30 xcrun simctl io "$UDID" screenshot "$OUT/anh/08-giao-dien-toi.png" > /dev/null 2>&1
+lim 30 xcrun simctl ui "$UDID" appearance light
+lim 30 xcrun simctl ui "$UDID" content_size accessibility-extra-large
+lim 30 xcrun simctl terminate "$UDID" "$BUNDLE_ID" > /dev/null 2>&1
+APP_PID="$(lim 60 xcrun simctl launch "$UDID" "$BUNDLE_ID" | grep -oE '[0-9]+$')" && sleep 10
+lim 30 xcrun simctl io "$UDID" screenshot "$OUT/anh/09-chu-co-lon.png" > /dev/null 2>&1
+lim 30 xcrun simctl ui "$UDID" content_size large
 pass "Mở app ở giao diện tối và chữ cỡ lớn (ảnh 08, 09)"
 
 # App còn chạy sau toàn bộ lượt test.
@@ -193,7 +222,7 @@ fi
 
 # ------------------------------------------------------------------ 6. Crash, nhật ký
 kill -INT "$VIDEO_PID" 2>/dev/null; wait "$VIDEO_PID" 2>/dev/null
-xcrun simctl spawn "$UDID" log show --style compact --last "$(( $(date +%s) - START_TIME + 60 ))s" \
+lim 180 xcrun simctl spawn "$UDID" log show --style compact --last "$(( $(date +%s) - START_TIME + 60 ))s" \
   --predicate 'process == "App"' > "$OUT/nhat-ky-app.log" 2>/dev/null || true
 CRASHES="$(find "$HOME/Library/Logs/DiagnosticReports" -name 'App[-_]*' -newer "$OUT/.bat-dau" 2>/dev/null)"
 if [ -n "$CRASHES" ]; then
