@@ -130,13 +130,18 @@ for flow in "$ROOT"/maestro/0*.yaml; do
     skip "$title — chưa có tài khoản dùng thử (secret APP_REVIEW_USERNAME/PASSWORD)"
     continue
   fi
-  echo "== Maestro: $title"
+  echo "== Maestro: $title ($(date -u +%H:%MZ))"
   # Mỗi kịch bản tối đa 8 phút (Maestro có lúc treo cả lượt Actions): perl alarm vì macOS không có `timeout`.
+  # Alarm chỉ dừng script vỏ `maestro`; tiến trình Java (maestro.cli) còn sót sẽ giữ máy ảo làm kịch bản sau treo theo — dọn sau mỗi lần.
   run_flow() {
+    local rc=0
     perl -e 'alarm shift; exec @ARGV' 480 maestro --device "$UDID" test "$flow" \
       -e USERNAME="${USERNAME:-}" -e PASSWORD="${PASSWORD:-}" \
       --format junit --output "$OUT/maestro/$name.xml" \
-      --debug-output "$OUT/maestro/$name" > "$OUT/maestro/$name.log" 2>&1
+      --debug-output "$OUT/maestro/$name" > "$OUT/maestro/$name.log" 2>&1 || rc=$?
+    pkill -f 'maestro\.cli' 2>/dev/null || true
+    [ "$rc" -eq 0 ] || echo "   (mã thoát $rc lúc $(date -u +%H:%MZ))"
+    return "$rc"
   }
   # Máy ảo GitHub đôi khi khởi động bộ điều khiển Maestro chậm (IOSDriverTimeoutException) hoặc mất nối
   # (DeviceUnreachableException): lỗi công cụ, không phải lỗi app — chạy lại kịch bản đó một lần.

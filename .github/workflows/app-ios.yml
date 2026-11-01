@@ -54,6 +54,9 @@ jobs:
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
       - name: Thử trên iPhone nhỏ, iPhone lớn, iPad
         if: ${{ inputs.viec != 'testflight' }}
+        # Dưới giới hạn của job: quá giờ thì chỉ bước này dừng, bước tải kết quả (always) vẫn chạy và nhật ký còn
+        # (job bị huỷ thì GitHub không giữ nhật ký — lượt 41294327843 treo mà không biết kịch bản nào).
+        timeout-minutes: 95
         env:
           USERNAME: ${{ secrets.APP_REVIEW_USERNAME }}
           PASSWORD: ${{ secrets.APP_REVIEW_PASSWORD }}
