@@ -18,17 +18,18 @@ tags: [khach]
     centerElement: true
 - takeScreenshot: 02-nhom-hang
 # Bấm nhóm hàng ngay khi tới (trước đây cuộn xuống dải đối tác rồi cuộn ngược lên: ba lần cuộn trên trang có hiệu ứng chạy
-# liên tục làm iPhone Pro Max quá 8 phút, lượt 41319166089). Dải đối tác cuối trang xem ở lượt mở lại app.
+# liên tục làm iPhone Pro Max quá 8 phút, lượt 41319166089). Rồi đóng hộp, cuộn tiếp xuống dải đối tác.
 - tapOn: "(?s).*Thuốc tân dược.*"
 - extendedWaitUntil:
     visible: "Quên mật khẩu\\?"
     timeout: 20000
 - takeScreenshot: 02-mo-dang-nhap
-- launchApp:
-    stopApp: true
+# Đóng hộp đăng nhập rồi cuộn tiếp (không mở lại app: sau lần mở lại máy ảo iPhone SE có lúc Maestro mất quyền đọc cửa sổ,
+# cây phần tử rỗng dù trang đã hiện — lượt 41350832414).
+- tapOn: "Đóng"
 - extendedWaitUntil:
-    visible: "(?s).*Phân phối dược phẩm.*"
-    timeout: 60000
+    notVisible: "Quên mật khẩu\\?"
+    timeout: 20000
 - scrollUntilVisible:
     element: "(?s).*Đối tác của chúng tôi.*"
     direction: DOWN
