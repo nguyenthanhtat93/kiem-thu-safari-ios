@@ -33,7 +33,13 @@ tags: [khach]
     timeout: 15000
 - assertVisible: "Quên mật khẩu\\?"
 - takeScreenshot: 03-sai-mat-khau
-- hideKeyboard
+# Bỏ con trỏ khỏi ô nhập bằng cách chạm tiêu đề "Đăng nhập" (index 0, trước nút cùng chữ): hideKeyboard của Maestro không ẩn được
+# bàn phím của ô nhập trên web ở iPhone SE (lượt 41367766424: "Couldn't hide the keyboard").
+- tapOn:
+    text: "Đăng nhập"
+    index: 0
+- waitForAnimationToEnd:
+    timeout: 5000
 - scrollUntilVisible:
     element: "Chính sách bảo mật"
     direction: DOWN

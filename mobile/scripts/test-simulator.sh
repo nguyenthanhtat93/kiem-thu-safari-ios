@@ -113,6 +113,9 @@ app_running() {
     lim 30 xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE_ID" && return 0
     # Tiến trình app của máy ảo chạy ngay trên máy Mac: còn PID lúc mở là app còn sống.
     [ -n "${APP_PID:-}" ] && kill -0 "$APP_PID" 2>/dev/null && return 0
+    # iPad chạy app iPhone ở chế độ tương thích: launchctl không liệt kê và simctl launch không trả PID — tìm thẳng tiến
+    # trình App.app của máy ảo này trên máy Mac (lượt 41367766424 báo nhầm "không còn chạy" dù ảnh 09 app vẫn hiện).
+    pgrep -f "Devices/$UDID/.*/App\.app/App" > /dev/null 2>&1 && return 0
   done
   return 1
 }
