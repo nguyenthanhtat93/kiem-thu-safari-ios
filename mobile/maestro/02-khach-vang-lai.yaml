@@ -26,7 +26,15 @@ tags: [khach]
 - takeScreenshot: 02-mo-dang-nhap
 # Đóng hộp đăng nhập rồi cuộn tiếp (không mở lại app: sau lần mở lại máy ảo iPhone SE có lúc Maestro mất quyền đọc cửa sổ,
 # cây phần tử rỗng dù trang đã hiện — lượt 41350832414).
+# Chờ trang hết trôi: trên iOS chạm lúc trang còn trôi chỉ dừng cuộn, không bấm (Pro Max, lượt 41358355006). Còn mở thì bấm lại.
+- waitForAnimationToEnd:
+    timeout: 10000
 - tapOn: "Đóng"
+- runFlow:
+    when:
+      visible: "Quên mật khẩu\\?"
+    commands:
+      - tapOn: "Đóng"
 - extendedWaitUntil:
     notVisible: "Quên mật khẩu\\?"
     timeout: 20000
