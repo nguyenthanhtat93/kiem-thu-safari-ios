@@ -39,6 +39,9 @@ jobs:
         if: ${{ inputs.viec != 'testflight' }}
         run: |
           mkdir -p "$RUNNER_TEMP/ket-qua"
+          # Chỉ bản cho máy ảo: mở trang ở chế độ đứng yên (?tinh=1, web/src/lib/stillMode.ts) — hiệu ứng chạy liên tục làm
+          # Maestro chờ màn đứng yên tới hết giờ (lượt 41377051814). Bản Release nộp App Store giữ nguyên địa chỉ.
+          node -e 'const f="ios/App/App/capacitor.config.json",fs=require("fs"),c=JSON.parse(fs.readFileSync(f));c.server.url+="/?tinh=1";fs.writeFileSync(f,JSON.stringify(c,null,2));console.log(c.server.url)'
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGNING_ALLOWED=NO build \
             > "$RUNNER_TEMP/ket-qua/xcodebuild.log" 2>&1 || { tail -n 80 "$RUNNER_TEMP/ket-qua/xcodebuild.log"; exit 1; }
