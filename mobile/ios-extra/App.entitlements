@@ -6,5 +6,11 @@
 	     đổi sang "production" theo hồ sơ ký phân phối. -->
 	<key>aps-environment</key>
 	<string>development</string>
+	<!-- Sign in with Apple (App Store 4.8): hộp đăng nhập Apple gốc qua cầu nối qcAppleSignIn (AppViewController.swift).
+	     Ký tự động (viec=testflight) tự bật khả năng này cho App ID. -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 </dict>
 </plist>

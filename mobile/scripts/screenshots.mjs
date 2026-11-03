@@ -6,8 +6,8 @@
 //     node mobile/scripts/screenshots.mjs [https://duocphamlinhphuong.com] [thư-mục-ảnh]
 //
 // Luôn dùng tài khoản dùng thử của Apple (không lộ dữ liệu khách thật). Không có
-// tài khoản thì chỉ chụp các trang công khai. GitHub Actions: workflow "App iOS"
-// › Run workflow › chup_anh.
+// tài khoản thì chỉ chụp các trang công khai. Chạy được trên VPS Pet (lệnh đầy đủ ở
+// docs/app-store/README.md bước 6); workflow "App iOS" không có lựa chọn chụp ảnh.
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
