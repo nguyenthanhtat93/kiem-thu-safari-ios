@@ -13,7 +13,7 @@ async function wd(method, path, body) {
 let session;
 try {
   for (let i = 0; i < 240; i++) { try { await fetch(base + '/status'); break; } catch { await sleep(500); } }
-  session = (await wd('POST', '/session', { capabilities: { alwaysMatch: { browserName: 'Safari', platformName: 'iOS', 'safari:useSimulator': true, 'safari:deviceName': device, 'safari:deviceUDID': udid } } })).sessionId;
+  for (let n = 0; n < 3 && !session; n++) try { session = (await wd('POST', '/session', { capabilities: { alwaysMatch: { browserName: 'Safari', platformName: 'iOS', 'safari:useSimulator': true, 'safari:deviceName': device, 'safari:deviceUDID': udid } } })).sessionId; } catch (e) { console.log('thử lại phiên', String(e).slice(0, 120)); }
   for (const v of ['a', 'b', 'c', 'd', 'e', 'f']) {
     await wd('POST', `/session/${session}/url`, { url: `http://127.0.0.1:8123/index.html?v=${v}` });
     await sleep(1500);
