@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;padding:120px 16px;font-family:-apple-system,system-ui,sans-serif;background:#fff}
+.pill{display:flex;align-items:center;gap:8px;border:1px solid #cfd6e4;border-radius:999px;padding:8px 12px;width:360px;box-sizing:border-box}
+.plus{width:28px;height:28px;flex:none;background:#eee;border-radius:50%}
+textarea{flex:1;min-width:0;border:0;outline:none;box-shadow:none;background:transparent;font:400 16px/24px -apple-system,system-ui,sans-serif;color:#111;
+ height:24px;min-height:24px;padding:0 8px;line-height:24px;resize:none;-webkit-appearance:none;appearance:none;border-radius:0;margin:0}
+textarea::placeholder{color:#8a94a6}
+.mark{position:absolute;width:1px;height:40px;background:red}
+</style></head><body>
+<div class="pill"><span class="plus"></span><textarea id="t" rows="1" placeholder="Giao việc cho Pet"></textarea></div>
+<script>
+const v=new URLSearchParams(location.search).get('v')||'a',t=document.getElementById('t'),s=document.createElement('style');
+s.textContent={a:'',b:'textarea{text-indent:-3px}',c:'textarea{padding-left:5px}',d:'textarea{text-indent:-3px}textarea::placeholder{text-indent:0}',e:'textarea::placeholder{text-indent:3px}',f:'textarea{padding-left:0}'}[v]||'';
+document.head.appendChild(s);
+// Vạch đỏ đánh dấu mép trái vùng chữ (sau lề trong).
+addEventListener('load',()=>{const r=t.getBoundingClientRect(),m=document.createElement('div');m.className='mark';m.style.left=(r.left+parseFloat(getComputedStyle(t).paddingLeft))+'px';m.style.top=(r.top+scrollY+30)+'px';document.body.appendChild(m);});
+</script></body></html>
